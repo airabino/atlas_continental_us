@@ -1,0 +1,11 @@
+{
+	"input_file": "/media/aaron/Extreme SSD/Atlas_Source/North_American_Roads.shp",
+	"output_file": "Outputs/atlas.json",
+	"node_attributes": {},
+	"link_attributes": {
+		"length": "lambda e: e['LENGTH']*1e3",
+		"speed": "lambda e: e['SPEEDLIM']/3.6",
+		"time": "lambda e: (e['LENGTH']*1e3)/(e['SPEEDLIM']/3.6)"
+	},
+	"verbose": 1
+}

@@ -480,3 +480,37 @@ def subgraph(graph, nodes):
 	subgraph.graph.update(graph.graph)
 
 	return subgraph
+
+def supergraph(graphs):
+
+	supergraph = graphs[0].__class__()
+
+	nodes = []
+
+	edges = []
+
+	show = True
+
+	for graph in graphs:
+
+		for source, adj in graph._adj.items():
+
+			coords_s = (graph._node[source]['x'], graph._node[source]['y'])
+
+			nodes.append((coords_s, graph._node[source]))
+
+			for target, edge in adj.items():
+
+				coords_t = (graph._node[target]['x'], graph._node[target]['y'])
+
+				edges.append((coords_s, coords_t, edge))
+
+	supergraph.add_nodes_from(nodes)
+
+	supergraph.add_edges_from(edges)
+
+	supergraph = nx.relabel_nodes(
+		supergraph, {k: idx for idx, k in enumerate(supergraph.nodes)}
+		)
+
+	return supergraph

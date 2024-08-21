@@ -83,60 +83,6 @@ default_route_tree_kwargs = {
 	}
 }
 
-def plot_route_tree(ax, graph, values = {}, paths = {}, destinations = [], **kwargs):
-	'''
-	plots a route tree from an origin to destinations with refueling stations
-	'''
-
-	stations_used = []
-
-	# Plotting path edges
-	for path in paths.values():
-
-		stations_used.extend(path[1:-1])
-
-		x = [graph._node[n]['x'] for n in path]
-		y = [graph._node[n]['y'] for n in path]
-
-		ax.plot(x, y, **kwargs.get('edge_kw', {}))
-
-	# Adding value field to graph
-	for source, node in graph._node.items():
-
-		node['value'] = values.get(source, np.nan)
-
-	# Making subgraphs
-	nodes = list(graph.nodes)
-	stations = [n for n in nodes if n not in destinations]
-	stations = [n for n in stations if n not in stations_used]
-
-	# Plotting destinations
-	if kwargs.get('show_destinations', True):
-
-		destinations = subgraph(graph, destinations)
-	
-		plot_graph(
-			destinations, ax = ax, show_links = False, **kwargs.get('destinations_kw', {})
-			)
-
-	# Plotting stations
-	if kwargs.get('show_unused_stations', True):
-
-		stations = subgraph(graph, stations)
-	
-		plot_graph(
-			stations, ax = ax, show_links = False, **kwargs.get('stations_kw', {})
-			)
-
-	# Plotting stations used
-	if kwargs.get('show_used_stations', True):
-
-		stations_used = subgraph(graph, stations_used)
-	
-		plot_graph(
-			stations_used, ax = ax, show_links = False, **kwargs.get('stations_used_kw', {})
-			)
-
 def colormap(colors, reverse = False):
 
 	if type(colors) == str:
@@ -163,19 +109,12 @@ def colormap(colors, reverse = False):
 
 	return colormap_out
 
-def add_node_field(graph, field, values):
-
-	for idx, key in enumerate(graph._node.keys()):
-
-		graph._node[key][field] = values[idx]
-
-	return graph
-
 def plot_graph(graph, ax = None, **kwargs):
 
 	cmap = kwargs.get('cmap', colormap('viridis'))
 	node_field = kwargs.get('node_field', None)
 	link_field = kwargs.get('link_field', None)
+	show_nodes = kwargs.get('show_nodes', True)
 	show_links = kwargs.get('show_links', True)
 	show_colorbar = kwargs.get('show_colorbar', False)
 	colorbar_kw = kwargs.get('colorbar', {})
@@ -191,33 +130,35 @@ def plot_graph(graph, ax = None, **kwargs):
 
 	scatter_kw = kwargs.get('scatter', {})
 
-	if node_field is not None:
+	if show_nodes:
 
-		values = np.array([v.get(node_field, np.nan) for v in graph._node.values()])
+		if node_field is not None:
 
-		indices = np.argsort(values)
+			values = np.array([v.get(node_field, np.nan) for v in graph._node.values()])
 
-		values = values[indices]
-		coords = coords[indices]
+			indices = np.argsort(values)
 
-		vmin = scatter_kw.get('vmin', np.nanmin(values))
-		vmax = scatter_kw.get('vmax', np.nanmax(values))
+			values = values[indices]
+			coords = coords[indices]
 
-		if vmin == vmax:
+			vmin = scatter_kw.get('vmin', np.nanmin(values))
+			vmax = scatter_kw.get('vmax', np.nanmax(values))
 
-			values_norm = values
+			if vmin == vmax:
 
-		else:
+				values_norm = values
 
-			values_norm = (
-					(values - vmin) / (vmax - vmin)
-					)
+			else:
 
-		scatter_kw['color'] = cmap(values_norm)
+				values_norm = (
+						(values - vmin) / (vmax - vmin)
+						)
 
-	sc = ax.scatter(
-		coords[:, 0], coords[:, 1], **scatter_kw
-		)
+			scatter_kw['color'] = cmap(values_norm)
+
+		sc = ax.scatter(
+			coords[:, 0], coords[:, 1], **scatter_kw
+			)
 
 	if show_links:
 

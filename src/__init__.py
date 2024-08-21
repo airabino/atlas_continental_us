@@ -8,3 +8,4 @@ from . import dijkstra # Dijkstra routing algorithm
 from . import bellman # Bellman routing algorithm
 from . import floyd_warshall # Floyd Warshall routing algorithm
 from . import adjacency
+from . import fips

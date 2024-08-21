@@ -9,6 +9,7 @@ def dijkstra(graph, origins, **kwargs):
 
     destinations = kwargs.get('destinations', [])
     objective = kwargs.get('objective', 'objective')
+    fields = kwargs.get('fields', [])
     return_paths = kwargs.get('return_paths', True)
     terminate_at_destinations = kwargs.get('terminate_at_destinations', True)
     maximum_cost = kwargs.get('maximum_cost', np.inf)
@@ -18,6 +19,8 @@ def dijkstra(graph, origins, **kwargs):
     edges = graph._adj
 
     costs = {} # dictionary of objective values for paths
+
+    path_values = {}
 
     visited = {} # dictionary of costs-to-reach for nodes
 
@@ -37,18 +40,26 @@ def dijkstra(graph, origins, **kwargs):
         # Source is seen at the start of iteration and at 0 cost
         visited[origin] = np.inf
 
-        heappush(heap, (0, next(c), origin))
+        values = {f: 0 for f in fields}
+        # print(values)
+
+        heappush(heap, (0, next(c), values, origin))
 
     while heap: # Iterating while there are accessible unseen nodes
 
         # Popping the lowest cost unseen node from the heap
-        cost, _, source = heappop(heap)
+        cost, _, values, source = heappop(heap)
+
+        # print(values)
 
         if source in costs:
 
             continue  # already searched this node.
 
         costs[source] = cost
+        path_values[source] = values
+
+        # print(values)
 
         if source in terminals:
 
@@ -65,13 +76,17 @@ def dijkstra(graph, origins, **kwargs):
             feasible = cost_target <= maximum_cost
 
             if savings & feasible:
+
+                # print(edge, {k: v for k, v in values.items()})
+
+                values_target = {k: v + edge.get(k, 0) for k, v in values.items()}
                
                 visited[target] = cost_target
                 terminal[source] = False
                 # terminal[target] = True
 
-                heappush(heap, (cost_target, next(c), target))
+                heappush(heap, (cost_target, next(c), values_target, target))
 
     terminal = {k: terminal[k] for k in costs.keys()}
 
-    return costs, terminal
+    return costs, path_values, terminal

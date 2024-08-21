@@ -62,10 +62,6 @@ def direct_adjacency(graph, **kwargs):
 
     return graph
 
-
-
-    
-
 # Routing functions and related objects
 def closest_nodes_from_coordinates(graph, x, y):
     '''
@@ -180,7 +176,13 @@ class Graph_From_Atlas():
 
         return cost_new, savings
 
-def reduction(atlas, origins = None, objective = 'distance', maximum_cost = 5000):
+def reduction(atlas, **kwargs):
+
+    origins = kwargs.get('origins', None)
+    objective = kwargs.get('objective', 'distance')
+    maximum_cost = kwargs.get('maximum_cost', 5000)
+    fields = kwargs.get('fields', ['time'])
+    verbose = kwargs.get('verbose', False)
 
     if origins is None:
 
@@ -188,7 +190,7 @@ def reduction(atlas, origins = None, objective = 'distance', maximum_cost = 5000
 
         for source, adj in atlas._adj.items():
 
-            if len(adj) > 2:
+            if len(adj) != 2:
 
                 intersections.append(source)
 
@@ -210,7 +212,8 @@ def reduction(atlas, origins = None, objective = 'distance', maximum_cost = 5000
 
         idx, origin = heappop(heap)
 
-        print(f'{idx} done, {len(heap)} in queue                 ', end = '\r')
+        if verbose:
+            print(f'{idx} done, {len(heap)} in queue                 ', end = '\r')
 
         node = _node[origin]
         node['id'] = origin
@@ -219,12 +222,13 @@ def reduction(atlas, origins = None, objective = 'distance', maximum_cost = 5000
 
         # origin_atlas = graph_to_atlas[origin]
 
-        costs, terminal = dijkstra(
+        costs, values, terminal = dijkstra(
             atlas,
             [origin],
             destinations = origins,
             objective = objective,
             maximum_cost = maximum_cost,
+            fields = fields,
             terminate_at_destinations = True,
             return_paths = False,
             )
@@ -253,7 +257,7 @@ def reduction(atlas, origins = None, objective = 'distance', maximum_cost = 5000
 
         for destination in destinations_reached:
 
-            link = {}
+            link = {**values.get(destination, {})}
 
             link['source'] = origin
             link['target'] = destination
